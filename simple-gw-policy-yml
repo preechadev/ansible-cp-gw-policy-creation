@@ -4,7 +4,33 @@
   connection: httpapi
   tasks:
 
-    # - include_vars: my_variables.yml
+# Include all the variables
+    - include_vars: my_variables.yml
+
+# Create multiple network objects using loop, variables are from my_variables.yml
+    - name: task to have network
+      check_point.mgmt.cp_mgmt_network:
+        name: "{{ item.name }}"
+        subnet: "{{ item.subnet }}"
+        mask_length: "{{ item.mask }}"
+        auto_publish_session: true
+      loop: "{{ networks }}"
+
+
+# Create multiple network objects using loop
+    # - name: task to have network
+    #   check_point.mgmt.cp_mgmt_network:
+    #     name: "{{ item.name }}"
+    #     subnet: "{{ item.subnet }}"
+    #     mask_length: "{{ item.mask }}"
+    #     auto_publish_session: true
+    #   loop:
+    #   - { name: 'net01_test', subnet: '10.10.10.0', mask: '24' }
+    #   - { name: 'net02_test', subnet: '10.10.20.0', mask: '24' }
+    #   - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
+
+
+
 
 # Create a simple network object
 #     - name: task to have network
@@ -13,19 +39,6 @@
 #         subnet: "4.1.76.0"
 #         mask_length: 24
 #         auto_publish_session: true
-
-
-# Create multiple network objects using loop
-    - name: task to have network
-      check_point.mgmt.cp_mgmt_network:
-        name: "{{ item.name }}"
-        subnet: "{{ item.subnet }}"
-        mask_length: "{{ item.mask }}"
-        auto_publish_session: true
-      loop:
-      - { name: 'net01_test', subnet: '10.10.10.0', mask: '24' }
-      - { name: 'net02_test', subnet: '10.10.20.0', mask: '24' }
-      - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
 
 
 # Create a simple gateway with 2 interfaces
