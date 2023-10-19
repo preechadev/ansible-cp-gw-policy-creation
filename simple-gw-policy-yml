@@ -3,13 +3,30 @@
   hosts: check_point
   connection: httpapi
   tasks:
+
+    # - include_vars: my_variables.yml
+
 # Create a simple network object
+#     - name: task to have network
+#       check_point.mgmt.cp_mgmt_network:
+#         name: "net01_test"
+#         subnet: "4.1.76.0"
+#         mask_length: 24
+#         auto_publish_session: true
+
+
+# Create multiple network objects using loop
     - name: task to have network
       check_point.mgmt.cp_mgmt_network:
-        name: "net01_test"
-        subnet: "4.1.76.0"
-        mask_length: 24
+        name: "{{ item.name }}"
+        subnet: "{{ item.subnet }}"
+        mask_length: "{{ item.mask }}"
         auto_publish_session: true
+      loop:
+      - { name: 'net01_test', subnet: '10.10.10.0', mask: '24' }
+      - { name: 'net02_test', subnet: '10.10.20.0', mask: '24' }
+      - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
+
 
 # Create a simple gateway with 2 interfaces
     - name: add-simple-gateway
@@ -34,6 +51,7 @@
           topology: internal
         state: present
 
+
 # Create a new policy package 
     - name: add-package
       check_point.mgmt.cp_mgmt_package:
@@ -44,6 +62,7 @@
         state: present
         threat_prevention: true
         auto_publish_session: true
+
 
 # Add one rule on top of the default clean up rule allowing SMTP on the newly created policy package
     - name: set-access-rule
