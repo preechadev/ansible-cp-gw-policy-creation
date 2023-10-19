@@ -4,95 +4,206 @@
   connection: httpapi
   tasks:
 
-# Include all the variables
-    - include_vars: my_variables.yml
+  # Include all the variables
+  - include_vars: my_variables.yml
 
-# Create multiple network objects using loop, variables are from my_variables.yml
-    - name: task to have network
-      check_point.mgmt.cp_mgmt_network:
-        name: "{{ item.name }}"
-        subnet: "{{ item.subnet }}"
-        mask_length: "{{ item.mask }}"
-        auto_publish_session: true
-      loop: "{{ networks }}"
-
-
-# Create multiple network objects using loop
-    # - name: task to have network
-    #   check_point.mgmt.cp_mgmt_network:
-    #     name: "{{ item.name }}"
-    #     subnet: "{{ item.subnet }}"
-    #     mask_length: "{{ item.mask }}"
-    #     auto_publish_session: true
-    #   loop:
-    #   - { name: 'net01_test', subnet: '10.10.10.0', mask: '24' }
-    #   - { name: 'net02_test', subnet: '10.10.20.0', mask: '24' }
-    #   - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
+  # Create multiple network objects using loop, variables are from my_variables.yml
+  - name: task to have network 
+    check_point.mgmt.cp_mgmt_network:
+      name: "{{ item.name }}"
+      subnet: "{{ item.subnet }}"
+      mask_length: "{{ item.mask }}"
+      auto_publish_session: true
+    loop: "{{ networks }}"
 
 
+  # Create multiple network objects using loop
+  # - name: task to have network
+  #   check_point.mgmt.cp_mgmt_network:
+  #     name: "{{ item.name }}"
+  #     subnet: "{{ item.subnet }}"
+  #     mask_length: "{{ item.mask }}"
+  #     auto_publish_session: true
+  #   loop:
+  #   - { name: 'net01_test', subnet: '10.10.10.0', mask: '24' }
+  #   - { name: 'net02_test', subnet: '10.10.20.0', mask: '24' }
+  #   - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
 
 
-# Create a simple network object
-#     - name: task to have network
-#       check_point.mgmt.cp_mgmt_network:
-#         name: "net01_test"
-#         subnet: "4.1.76.0"
-#         mask_length: 24
-#         auto_publish_session: true
+  # Create a simple network object
+  #     - name: task to have network
+  #       check_point.mgmt.cp_mgmt_network:
+  #         name: "net01_test"
+  #         subnet: "4.1.76.0"
+  #         mask_length: 24
+  #         auto_publish_session: true
 
 
-# Create a simple gateway with 2 interfaces
-    - name: add-simple-gateway
-      check_point.mgmt.cp_mgmt_simple_gateway:
-        ip_address: 10.10.10.10
-        name: gw1
-        anti_bot: true
-        anti_virus: true
-        application_control: true
-        ips: true
-        auto_publish_session: true
-        interfaces:
-        - anti_spoofing: false
-          ipv4_address: 10.10.10.10
-          ipv4_mask_length: 24
+  # Create a simple gateway with 2 interfaces
+  - name: add-simple-gateway
+    check_point.mgmt.cp_mgmt_simple_gateway:
+      ip_address: 10.10.10.10
+      name: gw1
+      anti_bot: true
+      anti_virus: true
+      application_control: true
+      ips: true
+      interfaces:
+      - anti_spoofing: false
+        ipv4_address: 10.10.10.10
+        ipv4_mask_length: 24
+        name: eth0
+        topology: external
+      - anti_spoofing: false
+        ipv4_address: 10.20.20.20
+        ipv4_mask_length: 24
+        name: eth1
+        topology: internal
+      state: present
+      auto_publish_session: true
+
+  - name: add-simple-cluster
+    check_point.mgmt.cp_mgmt_simple_cluster:
+      cluster_mode: cluster-xl-ha
+      color: yellow
+      firewall: true
+      anti_bot: true
+      anti_virus: true
+      interfaces:
+      - anti_spoofing: true
+        interface_type: cluster
+        ip_address: 17.23.5.1
+        name: eth0
+        network_mask: 255.255.255.0
+        topology: external
+      - interface_type: sync
+        name: eth1
+        topology: internal
+        topology_settings:
+          interface_leads_to_dmz: false
+          ip_address_behind_this_interface: network defined by the interface ip and net
+            mask
+      - anti_spoofing: true
+        interface_type: cluster
+        ip_address: 192.168.1.1
+        name: eth2
+        network_mask: 255.255.255.0
+        topology: internal
+        topology_settings:
+          interface_leads_to_dmz: false
+          ip_address_behind_this_interface: network defined by the interface ip and net
+            mask
+      ip_address: 17.23.5.1
+      members:
+      - interfaces:
+        - ip_address: 17.23.5.2
           name: eth0
-          topology: external
-        - anti_spoofing: false
-          ipv4_address: 10.20.20.20
-          ipv4_mask_length: 24
+          network_mask: 255.255.255.0
+        - ip_address: 1.1.2.4
           name: eth1
-          topology: internal
-        state: present
+          network_mask: 255.255.255.0
+        - ip_address: 192.168.1.2
+          name: eth2
+          network_mask: 255.255.255.0
+        ip_address: 17.23.5.2
+        name: member1
+        one_time_password: abcd
+      - interfaces:
+        - ip_address: 17.23.5.3
+          name: eth0
+          network_mask: 255.255.255.0
+        - ip_address: 1.1.2.5
+          name: eth1
+          network_mask: 255.255.255.0
+        - ip_address: 192.168.1.3
+          name: eth2
+          network_mask: 255.255.255.0
+        ip_address: 17.23.5.3
+        name: member2
+        one_time_password: abcd
+      name: cluster1
+      os_name: Gaia
+      state: present
+      cluster_version: R81.20
+      auto_publish_session: true
+
+  # Create a new policy package 
+  - name: add-package
+    check_point.mgmt.cp_mgmt_package:
+      access: true
+      color: blue
+      comments: NewPolicy
+      name: New_Standard_Package_1
+      state: present
+      threat_prevention: true
+      auto_publish_session: true
+
+  # This has issue with the module itself, waiting for RnD to investigate
+  # - name: add-rules-batch
+  #   check_point.mgmt.cp_mgmt_add_rules_batch:
+  #     objects:
+  #     - first_position: top
+  #       layer: New_Standard_Package_1
+  #       list:
+  #       - action: accept
+  #         name: access rule 1
+  #       - action: accept
+  #         name: access rule 2
+  #       type: access-rule
 
 
-# Create a new policy package 
-    - name: add-package
-      check_point.mgmt.cp_mgmt_package:
-        access: true
-        color: blue
-        comments: NewPolicy
-        name: New_Standard_Package_1
-        state: present
-        threat_prevention: true
-        auto_publish_session: true
+  # Add two rules on top of the default clean up rule allowing SMTP and SNMP on the newly created policy package
+  - name: set-access-rule
+    check_point.mgmt.cp_mgmt_access_rule:
+      layer: New_Standard_Package_1 Network
+      position: top
+      name: SMTP Allow
+      source: net01_test
+      destination: Any
+      service:
+      - SMTP
+      action: Accept
+      state: present
+      auto_publish_session: true
+  - name: set-access-rule
+    check_point.mgmt.cp_mgmt_access_rule:
+      layer: New_Standard_Package_1 Network
+      position: top
+      name: SNMP Allow
+      source: net02_test
+      destination: Any
+      service:
+      - SNMP
+      action: Accept
+      state: present
+      auto_publish_session: true
 
+  # Add a simple NAT rule
+  # As this module does not support 'name'. Hence, It will create always additional rule on top every time the ansible playbook runs.
+  - name: add-nat-rule
+    check_point.mgmt.cp_mgmt_add_nat_rule:
+      comments: NATexample1
+      enabled: true
+      install_on:
+      - Policy Targets
+      original_destination: All_Internet
+      original_source: net01_test
+      package: New_Standard_Package_1
+      method: hide
+      position: top
+      auto_publish_session: true
 
-# Add one rule on top of the default clean up rule allowing SMTP on the newly created policy package
-    - name: set-access-rule
-      check_point.mgmt.cp_mgmt_access_rule:
-        auto_publish_session: true
-        layer: New_Standard_Package_1 Network
-        position: top
-        name: SMTP Allow
-        source: net01_test
-        destination: Any
-        service:
-        - SMTP
-        action: Accept
-        state: present
+  # Add section for manual NAT
+  - name: add-nat-section
+    check_point.mgmt.cp_mgmt_nat_section:
+      name: ManualNAT
+      package: New_Standard_Package_1
+      position: top
+      state: present
+      auto_publish_session: true
 
+  # - name: install-database
+  #   check_point.mgmt.cp_mgmt_install_database:
+  #     targets:
+  #     - mgmt-aws
 
-    # - name: install-database
-    #   check_point.mgmt.cp_mgmt_install_database:
-    #     targets:
-    #     - mgmt-aws
