@@ -3,19 +3,19 @@ ansible-cp-gw-policy-creation
 
 Here is the example of the /etc/ansible/hosts file
 
-ubuntu@ip-10-11-1-177:~$ cat /etc/ansible/hosts
-[check_point]
-<SMS_IP>
-#%CHECK_POINT_MANAGEMENT_SERVER_IP%
-[check_point:vars]
-ansible_httpapi_use_ssl=True
-ansible_httpapi_validate_certs=False
-ansible_user=admin
-ansible_password=<password>
-ansible_network_os=check_point.mgmt.checkpoint
-
+ubuntu@ip-10-11-1-177:~$ cat /etc/ansible/hosts <br>
+[check_point] <br>
+<SMS_IP> <br>
+#%CHECK_POINT_MANAGEMENT_SERVER_IP% <br>
+[check_point:vars] <br>
+ansible_httpapi_use_ssl=True <br>
+ansible_httpapi_validate_certs=False <br>
+ansible_user=admin <br>
+ansible_password=<password> <br>
+ansible_network_os=check_point.mgmt.checkpoint <br>
+ <br>
 
 Usage: 
 
-# ansible-playbook simple-gw-policy-yml --check
-# ansible-playbook simple-gw-policy-yml
+> ansible-playbook simple-gw-policy-yml --check <br>
+> ansible-playbook simple-gw-policy-yml
