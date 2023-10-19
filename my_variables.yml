@@ -1,0 +1,11 @@
+---
+networks:
+  - name: net01_test
+    subnet: 10.10.10.0
+    mask: 24
+  - name: net02_test
+    subnet: 10.10.20.0
+    mask: 24
+  - name: net03_test
+    subnet: 10.10.30.0
+    mask: 24
