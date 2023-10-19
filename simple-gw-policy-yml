@@ -1,0 +1,66 @@
+---
+- name: playbook name
+  hosts: check_point
+  connection: httpapi
+  tasks:
+# Create a simple network object
+    - name: task to have network
+      check_point.mgmt.cp_mgmt_network:
+        name: "net01_test"
+        subnet: "4.1.76.0"
+        mask_length: 24
+        auto_publish_session: true
+
+# Create a simple gateway with 2 interfaces
+    - name: add-simple-gateway
+      check_point.mgmt.cp_mgmt_simple_gateway:
+        ip_address: 10.10.10.10
+        name: gw1
+        anti_bot: true
+        anti_virus: true
+        application_control: true
+        ips: true
+        auto_publish_session: true
+        interfaces:
+        - anti_spoofing: false
+          ipv4_address: 10.10.10.10
+          ipv4_mask_length: 24
+          name: eth0
+          topology: external
+        - anti_spoofing: false
+          ipv4_address: 10.20.20.20
+          ipv4_mask_length: 24
+          name: eth1
+          topology: internal
+        state: present
+
+# Create a new policy package 
+    - name: add-package
+      check_point.mgmt.cp_mgmt_package:
+        access: true
+        color: blue
+        comments: NewPolicy
+        name: New_Standard_Package_1
+        state: present
+        threat_prevention: true
+        auto_publish_session: true
+
+# Add one rule on top of the default clean up rule allowing SMTP on the newly created policy package
+    - name: set-access-rule
+      check_point.mgmt.cp_mgmt_access_rule:
+        auto_publish_session: true
+        layer: New_Standard_Package_1 Network
+        position: top
+        name: SMTP Allow
+        source: net01_test
+        destination: Any
+        service:
+        - SMTP
+        action: Accept
+        state: present
+
+
+    # - name: install-database
+    #   check_point.mgmt.cp_mgmt_install_database:
+    #     targets:
+    #     - mgmt-aws
