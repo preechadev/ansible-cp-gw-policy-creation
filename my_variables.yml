@@ -9,3 +9,5 @@ networks:
   - name: net03_test
     subnet: 10.10.30.0
     mask: 24
+# vars:
+#   state: present
