@@ -199,6 +199,7 @@
       name: Malicious Block
       position: 1
       state: "{{ state }}"
+      auto_publish_session: true
 
   - name: add-access-section
     check_point.mgmt.cp_mgmt_access_section:
@@ -206,6 +207,7 @@
       name: Allow SMTP and AOL traffic internally
       position: 2
       state: "{{ state }}"
+      auto_publish_session: true
 
   - name: add-access-section
     check_point.mgmt.cp_mgmt_access_section:
@@ -213,6 +215,7 @@
       name: Drop SMTP between networks
       position: 3
       state: "{{ state }}"
+      auto_publish_session: true
 
   - name: add-access-section
     check_point.mgmt.cp_mgmt_access_section:
@@ -222,12 +225,10 @@
       state: "{{ state }}"
 
   # Add a simple NAT rule
-  # As this module does not support 'name'. Hence, It will create always additional rule 
-  # on top every time the ansible playbook runs.
   # Position in the rulebase. The use of values “top” and “bottom” may not be idempotent.
-
   - name: add-nat-rule
-    check_point.mgmt.cp_mgmt_add_nat_rule:
+    check_point.mgmt.cp_mgmt_nat_rule:
+      name: NATexample1
       comments: NATexample1
       enabled: true
       install_on:
@@ -237,6 +238,7 @@
       package: New_Standard_Package_1
       method: hide
       position: top
+      state: "{{ state }}"
       auto_publish_session: true
 
   # Add section for manual NAT
