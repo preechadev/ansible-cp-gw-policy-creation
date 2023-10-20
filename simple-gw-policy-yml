@@ -2,8 +2,12 @@
 - name: playbook name
   hosts: check_point
   connection: httpapi
-  tasks:
 
+  # Add or Delete access and NAT rules from here (present / absent)
+  vars:
+    state: present
+
+  tasks:
   # Include all the variables
   - include_vars: my_variables.yml
 
@@ -30,13 +34,13 @@
   #   - { name: 'net03_test', subnet: '10.10.30.0', mask: '24' }
 
 
-  # Create a simple network object
-  #     - name: task to have network
-  #       check_point.mgmt.cp_mgmt_network:
-  #         name: "net01_test"
-  #         subnet: "4.1.76.0"
-  #         mask_length: 24
-  #         auto_publish_session: true
+  # Create a simple network object called MaliciousIPs
+  - name: task to have network
+    check_point.mgmt.cp_mgmt_network:
+      name: "MaliciousIPs"
+      subnet: "203.14.65.0"
+      mask_length: 24
+      auto_publish_session: true
 
 
   # Create a simple gateway with 2 interfaces
@@ -151,35 +155,77 @@
   #         name: access rule 2
   #       type: access-rule
 
+  # Use this to add multiple rules is good but the issue with this, if the playbook is executed again
+  # It will cause the module error....!
+  - name: add-access-rules
+    check_point.mgmt.cp_mgmt_access_rules:
+      rules:
+        - name: Rule 1
+          source: net01_test
+          destination: net03_test
+          service:
+          - SMTP
+          - AOL
+          action: Accept
+          state: "{{ state }}"
+        - name: Rule 2
+          source: net03_test
+          destination: net01_test
+          service:
+          - SMTP
+          action: Reject
+          state: "{{ state }}"
+      layer: New_Standard_Package_1 Network
+      auto_publish_session: true
 
-  # Add two rules on top of the default clean up rule allowing SMTP and SNMP on the newly created policy package
-  - name: set-access-rule
+  # Add a rule on top of to block inbound from specific IPs
+  - name: add-access-rule
     check_point.mgmt.cp_mgmt_access_rule:
       layer: New_Standard_Package_1 Network
       position: top
-      name: SMTP Allow
-      source: net01_test
+      name: MaliciousBlock
+      source: MaliciousIPs
       destination: Any
       service:
-      - SMTP
-      action: Accept
-      state: present
+      - Any
+      action: Drop
+      state: "{{ state }}"
       auto_publish_session: true
-  - name: set-access-rule
-    check_point.mgmt.cp_mgmt_access_rule:
+
+  # Add multiple sections for the access rules
+  - name: add-access-section
+    check_point.mgmt.cp_mgmt_access_section:
       layer: New_Standard_Package_1 Network
-      position: top
-      name: SNMP Allow
-      source: net02_test
-      destination: Any
-      service:
-      - SNMP
-      action: Accept
-      state: present
-      auto_publish_session: true
+      name: Malicious Block
+      position: 1
+      state: "{{ state }}"
+
+  - name: add-access-section
+    check_point.mgmt.cp_mgmt_access_section:
+      layer: New_Standard_Package_1 Network
+      name: Allow SMTP and AOL traffic internally
+      position: 2
+      state: "{{ state }}"
+
+  - name: add-access-section
+    check_point.mgmt.cp_mgmt_access_section:
+      layer: New_Standard_Package_1 Network
+      name: Drop SMTP between networks
+      position: 3
+      state: "{{ state }}"
+
+  - name: add-access-section
+    check_point.mgmt.cp_mgmt_access_section:
+      layer: New_Standard_Package_1 Network
+      name: Clean Up
+      position: 4
+      state: "{{ state }}"
 
   # Add a simple NAT rule
-  # As this module does not support 'name'. Hence, It will create always additional rule on top every time the ansible playbook runs.
+  # As this module does not support 'name'. Hence, It will create always additional rule 
+  # on top every time the ansible playbook runs.
+  # Position in the rulebase. The use of values “top” and “bottom” may not be idempotent.
+
   - name: add-nat-rule
     check_point.mgmt.cp_mgmt_add_nat_rule:
       comments: NATexample1
@@ -199,7 +245,7 @@
       name: ManualNAT
       package: New_Standard_Package_1
       position: top
-      state: present
+      state: "{{ state }}"
       auto_publish_session: true
 
   # - name: install-database
