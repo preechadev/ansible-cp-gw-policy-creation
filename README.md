@@ -1,6 +1,9 @@
 # ansible-cp-gw-policy-creation
 ansible-cp-gw-policy-creation
 
+ansible-galaxy collection install check_point.mgmt
+ansible-galaxy collection install check_point.gaia
+
 Here is the example of the /etc/ansible/hosts file
 
 ubuntu@ip-10-11-1-177:~$ cat /etc/ansible/hosts <br>
