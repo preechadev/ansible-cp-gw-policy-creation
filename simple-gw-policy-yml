@@ -178,6 +178,15 @@
       layer: New_Standard_Package_1 Network
       auto_publish_session: true
 
+# Enable application control and URLF on existing layer
+- name: set-access-layer
+  cp_mgmt_access_layer:
+    applications_and_url_filtering: false
+    data_awareness: true
+    name: New_Standard_Package_1 Network
+    state: present
+    auto_publish_session: true
+
   # Add a rule on top of to block inbound from specific IPs
   - name: add-access-rule
     check_point.mgmt.cp_mgmt_access_rule:
